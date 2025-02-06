@@ -1,0 +1,22 @@
+Sub DoDocument()
+    Dim objShell As Object
+    Dim pythonExe As String
+    Dim pythonScript As String
+    Dim filePath As String
+    Dim savePath As String
+    Dim command As String
+
+    pythonExe = "C:\Path\To\Your\python.exe"
+
+    pythonScript = "C:\Path\To\Your\script.py"
+
+    savePath = "C:\Path\To\Save\Directory\name_file_report.xlsx"
+
+    filePath = """" & ThisWorkbook.FullName & """"
+
+    command = "cmd /k " & pythonExe & " " & pythonScript & " " & filePath & " " & savePath
+
+    Set objShell = CreateObject("WScript.Shell")
+
+    objShell.Run command, 1, True
+End Sub

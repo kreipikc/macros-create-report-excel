@@ -107,7 +107,7 @@ def convert_to_words(rubles: int, kopecks: int) -> str:
     result = f"{rubles_in_words.capitalize()} рублей {kopecks} копеек ({rubles} руб. {kopecks} коп.)"
     return result
 
-def get_absolute_path(relative_path):
+def get_absolute_path(relative_path: str) -> str:
     """Get the absolute path based on the location of the script.
 
     Args:

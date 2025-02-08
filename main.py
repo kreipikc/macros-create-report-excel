@@ -5,7 +5,7 @@ from openpyxl import load_workbook
 from openpyxl.styles import Border, Side, numbers, Font, Alignment
 from pydantic import ValidationError
 from babel.dates import format_date
-from config import POST_CELL, REPORT_MOTH_CELL, EMPLOYEE_CELL, START_ROW_READ, START_ROW_WRITE
+from config import POST_CELL, REPORT_MOTH_CELL, EMPLOYEE_CELL, START_ROW_READ, START_ROW_WRITE, COUNT_ROW_AFTER_CHECKS
 from schemas import ChecksDefault, AdditionalInfo
 from utils import create_check, sum_money_all_checks, convert_to_words, validate_check, get_absolute_path
 
@@ -160,7 +160,7 @@ def create_report(checks: List[ChecksDefault], info_data: AdditionalInfo, path_s
     new_block_data_row = START_ROW_WRITE + len(checks)
 
     # Все строки ниже чеков с размером 11
-    for i in range(6):
+    for i in range(COUNT_ROW_AFTER_CHECKS):
         sheet.row_dimensions[new_block_data_row + i].height = 11
 
     sheet.merge_cells(f'H{new_block_data_row}:K{new_block_data_row}')
@@ -240,8 +240,8 @@ def main(path_input: str, path_save: str) -> None:
     """
     print("Старт сканирования данных...")
     checks_all = read_input_checks(path_input)
-    print("Сканирование завершено!")
     info = read_input_additional_info(path_input)
+    print("Сканирование завершено!")
     print("Старт создания отчета...")
     create_report(checks_all, info, path_save)
     print("Создание отчета завершено!")
@@ -255,4 +255,4 @@ if __name__ == "__main__":
         file_path_save = sys.argv[2]
         main(file_path_input, file_path_save)
     else:
-        print("Please provide the file path as an argument.")
+        print("Ошибка. Не переданы пути для работы скрипта.")

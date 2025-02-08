@@ -15,8 +15,8 @@ pip intall -r requirements.txt
 ```
 
 ### Second step
-Configure it config.py if necessary (is to you use templates, you don't need to).
-The macro is already in the "**input.xlsm**" file, and its code can be viewed in "**macros_code.vb.txt** ". To work correctly, **you need to configure it in Excel**, namely specify the paths:
+Configure it `config.py` if necessary (is to you use templates, you don't need to).
+The macro is already in the `input.xlsm` file, and its code can be viewed in `macros_code.vb.txt`. To work correctly, **you need to configure it in Excel**, namely specify the paths:
 - `pythonExe`: path to the python interpreter;
 - `PythonScript`: the path to the script `main.py`;
 - `savePath`: the path to save the final report.

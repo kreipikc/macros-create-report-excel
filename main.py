@@ -122,36 +122,36 @@ def create_report(checks: List[ChecksDefault], info_data: AdditionalInfo, path_s
 
         sheet.merge_cells(f'D{idx}:E{idx}')
         sheet[f'D{idx}'] = check.date.strftime('%d.%m.%Y') if check.date is not None else None
-        sheet.column_dimensions['D'].width = 3.83 * 3
+        # sheet.column_dimensions['D'].width = 3.83 * 3
 
         sheet.merge_cells(f'F{idx}:G{idx}')
         sheet[f'F{idx}'] = check.id_check if check.id_check is not None else None
-        sheet.column_dimensions['F'].width = 3.83 * 3
+        # sheet.column_dimensions['F'].width = 3.83 * 3
 
         sheet.merge_cells(f'H{idx}:K{idx}')
         sheet[f'H{idx}'] = check.type.value
-        sheet.column_dimensions['H'].width = 3.83 * 3 + 10
+        # sheet.column_dimensions['H'].width = 3.83 * 3 + 10
 
         sheet.merge_cells(f'L{idx}:N{idx}')
         sheet[f'L{idx}'].number_format = numbers.FORMAT_NUMBER
         sheet[f'L{idx}'] = check.sum_check
-        sheet.column_dimensions['L'].width = 3.83 * 3
+        # sheet.column_dimensions['L'].width = 3.83 * 3
 
         sheet.merge_cells(f'O{idx}:Q{idx}')
-        sheet.column_dimensions['O'].width = 3.83 * 3
+        # sheet.column_dimensions['O'].width = 3.83 * 3
 
         sheet.merge_cells(f'R{idx}:T{idx}')
         sheet[f'R{idx}'].number_format = numbers.FORMAT_NUMBER
         sheet[f'R{idx}'] = check.sum_check
-        sheet.column_dimensions['R'].width = 3.83 * 3
+        # sheet.column_dimensions['R'].width = 3.83 * 3
 
         sheet.merge_cells(f'U{idx}:W{idx}')
-        sheet.column_dimensions['U'].width = 3.83 * 3
+        # sheet.column_dimensions['U'].width = 3.83 * 3
 
         sheet.merge_cells(f'X{idx}:Y{idx}')
-        sheet.column_dimensions['X'].width = 3.83 * 3
+        # sheet.column_dimensions['X'].width = 3.83 * 3
 
-        for row in sheet[f'A{idx}:Y{idx}']:
+        for row in sheet[f'B{idx}:Y{idx}']:
             for cell in row:
                 cell.border = border
 

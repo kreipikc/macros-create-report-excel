@@ -263,4 +263,4 @@ if __name__ == "__main__":
     # else:
     #     print("Ошибка. Не переданы пути для работы скрипта.")
 
-    main("input_2.xlsx", "reports/example_advance_report.xlsx")
+    main("input.xlsx", "reports/example_advance_report.xlsx")

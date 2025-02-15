@@ -4,7 +4,7 @@ from typing import Optional, List
 from num2words import num2words
 from pydantic import ValidationError
 from config import START_DATE
-from schemas import ChecksDefault, TypeCheck
+from schemas import ChecksDefault, TypeCheck, TypeDocument
 
 
 def validate_check(checks: List[ChecksDefault]) -> None:
@@ -44,16 +44,19 @@ def create_check(check: tuple) -> Optional[ChecksDefault]:
     try:
         check_res = ChecksDefault(
             number_str=int(check[0]),
-            id_check=int(check[1]) if check[1] is not None else None,
-            date=convert_excel_date_to_normal(int(check[2])) if check[2] is not None else None,
-            sum_check=float(check[3]),
-            type=TypeCheck(check[4].lower()),
-            counterparty=check[5],
-            counterparty_initials=check[6],
-            counterparty_post=check[7],
-            meeting_place=check[8],
-            topic=check[9],
-            comment=check[10],
+            type_document=TypeDocument(str(check[1].strip())),
+            id_check=check[2],
+            date=check[3],
+            sum_check=float(check[4]),
+            type=TypeCheck(check[5].lower().strip()),
+            counterparty=check[6],
+            counterparty_participant=check[7],
+            counterparty_post=check[8],
+            meeting_place=check[9],
+            medication=check[10],
+            topic=check[11],
+            name_present=check[12],
+            comment=check[13],
         )
         return check_res
     except ValidationError as e:
@@ -106,6 +109,7 @@ def convert_to_words(rubles: int, kopecks: int) -> str:
 
     result = f"{rubles_in_words.capitalize()} рублей {kopecks} копеек ({rubles} руб. {kopecks} коп.)"
     return result
+
 
 def get_absolute_path(relative_path: str) -> str:
     """Get the absolute path based on the location of the script.

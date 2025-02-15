@@ -1,10 +1,10 @@
 from datetime import date
 from enum import Enum
-from typing import Optional
+from typing import Optional, Union
 from pydantic import BaseModel
 
 
-class TypeCheck(Enum):
+class TypeCheck(str, Enum):
     """ All type of checks """
     representative_offices_event = "представительские - мероприятие"
     representative_offices_present = "представительские - подарки"
@@ -17,21 +17,36 @@ class TypeCheck(Enum):
     daily_allowance = "суточные"
 
 
+class TypeDocument(str, Enum):
+    """ All type of documents """
+    Cash_receipt_Representation_expenses = "Кассовый чек Представительские расходы"
+    CCT_receipt = "Чек ККТ"
+    Fuel_and_lubricants_cashiers_check = "Кассовый чек ГСМ"
+    Parking_Report = "Отчет о парковке"
+    Invoice = "Накладная"
+    Cash_receipt_Daily_allowance = "Кассовый чек Суточные"
+
+
 class ChecksDefault(BaseModel):
     number_str: int
-    id_check: Optional[int]
+    type_document: TypeDocument
+    id_check: Optional[Union[int, str]]
     date: Optional[date]
     sum_check: float
     type: TypeCheck
     counterparty: Optional[str]
-    counterparty_initials: Optional[str]
+    counterparty_participant: Optional[Union[int, str]]
     counterparty_post: Optional[str]
     meeting_place: Optional[str]
+    medication: Optional[str]
     topic: Optional[str]
+    name_present: Optional[str]
     comment: Optional[str]
 
 
 class AdditionalInfo(BaseModel):
     employee: str
     report_month: date
+    date_report: date
     post: str
+    department: str

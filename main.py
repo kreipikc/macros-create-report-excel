@@ -1,13 +1,20 @@
 import sys
-from datetime import date
 from typing import Optional, List
 from openpyxl import load_workbook
 from openpyxl.styles import Border, Side, numbers, Font, Alignment
 from pydantic import ValidationError
 from babel.dates import format_date
-from config import POST_CELL, REPORT_MOTH_CELL, EMPLOYEE_CELL, START_ROW_READ, START_ROW_WRITE, COUNT_ROW_AFTER_CHECKS
-from schemas import ChecksDefault, AdditionalInfo
+from schemas import ChecksDefault, AdditionalInfo, TypeCheck
 from utils import create_check, sum_money_all_checks, convert_to_words, validate_check, get_absolute_path
+from config import (
+    POST_CELL,
+    REPORT_MONTH_CELL,
+    EMPLOYEE_CELL,
+    START_ROW_READ,
+    START_ROW_WRITE,
+    COUNT_ROW_AFTER_CHECKS,
+    LOCATE_DATE, DATE_REPORT, DEPARTMENT_CELL
+)
 
 
 def read_input_additional_info(file_path: str) -> Optional[AdditionalInfo]:
@@ -28,8 +35,10 @@ def read_input_additional_info(file_path: str) -> Optional[AdditionalInfo]:
 
         data = AdditionalInfo(
             employee=sheet[EMPLOYEE_CELL].value,
-            report_month=sheet[REPORT_MOTH_CELL].value,
-            post=sheet[POST_CELL].value
+            date_report=sheet[DATE_REPORT].value,
+            report_month=sheet[REPORT_MONTH_CELL].value,
+            post=sheet[POST_CELL].value,
+            department=sheet[DEPARTMENT_CELL].value
         )
 
         return data
@@ -62,7 +71,7 @@ def read_input_checks(file_path: str) -> List[ChecksDefault]:
         if check:
             data.append(check)
 
-    validate_check(data)
+    # validate_check(data)
 
     # for row in data:
     #     print(row)
@@ -86,7 +95,6 @@ def create_report(checks: List[ChecksDefault], info_data: AdditionalInfo, path_s
     """
     workbook = load_workbook(get_absolute_path("templates/template_advance_report.xlsx"))
     sheet = workbook.active
-    locale_date = 'ru_RU'
     sys.stdout.reconfigure(encoding='utf-8')
 
     sum_checks = sum_money_all_checks(checks)
@@ -95,14 +103,15 @@ def create_report(checks: List[ChecksDefault], info_data: AdditionalInfo, path_s
 
     sheet['R9'] = rubles
     sheet['X9'] = kopecks
-    sheet['J13'] = date.today().strftime('%d.%m.%Y')
-    sheet['O15'] = format_date(date.today(), format='d MMMM yyyy г.', locale=locale_date)
+    sheet['J13'] = info_data.date_report.strftime('%d.%m.%Y')
+    sheet['O15'] = format_date(info_data.date_report, format='d MMMM yyyy г.', locale=LOCATE_DATE)
+    sheet['H19'] = info_data.department
     sheet['F21'] = info_data.employee
-    sheet['Q23'] = f"Расходы {format_date(info_data.report_month, format='MMMM yyyy', locale=locale_date)}"
+    sheet['Q23'] = f"Расходы {format_date(info_data.report_month, format='MMMM yyyy', locale=LOCATE_DATE)}"
     sheet['J33'] = sum_checks
     sheet['J39'] = convert_to_words(rubles, kopecks)
     sheet['I55'] = info_data.employee
-    sheet['D56'] = format_date(date.today(), format='d MMMM yyyy г.', locale=locale_date)
+    sheet['D56'] = format_date(info_data.date_report, format='d MMMM yyyy г.', locale=LOCATE_DATE)
     sheet['K56'] = convert_to_words(rubles, kopecks)
 
     border = Border(
@@ -122,34 +131,31 @@ def create_report(checks: List[ChecksDefault], info_data: AdditionalInfo, path_s
 
         sheet.merge_cells(f'D{idx}:E{idx}')
         sheet[f'D{idx}'] = check.date.strftime('%d.%m.%Y') if check.date is not None else None
-        # sheet.column_dimensions['D'].width = 3.83 * 3
+        sheet[f'D{idx}'].alignment = Alignment(vertical='top', horizontal='center')
 
         sheet.merge_cells(f'F{idx}:G{idx}')
         sheet[f'F{idx}'] = check.id_check if check.id_check is not None else None
-        # sheet.column_dimensions['F'].width = 3.83 * 3
+        sheet[f'F{idx}'].alignment = Alignment(vertical='top', horizontal='left')
 
         sheet.merge_cells(f'H{idx}:K{idx}')
-        sheet[f'H{idx}'] = check.type.value
-        # sheet.column_dimensions['H'].width = 3.83 * 3 + 10
+        sheet[f'H{idx}'] = check.type_document.value
+        sheet[f'H{idx}'].alignment = Alignment(vertical='top', horizontal='left', wrap_text=True)
 
         sheet.merge_cells(f'L{idx}:N{idx}')
         sheet[f'L{idx}'].number_format = numbers.FORMAT_NUMBER
         sheet[f'L{idx}'] = check.sum_check
-        # sheet.column_dimensions['L'].width = 3.83 * 3
+        sheet[f'L{idx}'].alignment = Alignment(vertical='top', horizontal='right')
 
         sheet.merge_cells(f'O{idx}:Q{idx}')
-        # sheet.column_dimensions['O'].width = 3.83 * 3
 
         sheet.merge_cells(f'R{idx}:T{idx}')
         sheet[f'R{idx}'].number_format = numbers.FORMAT_NUMBER
         sheet[f'R{idx}'] = check.sum_check
-        # sheet.column_dimensions['R'].width = 3.83 * 3
+        sheet[f'R{idx}'].alignment = Alignment(vertical='top', horizontal='right')
 
         sheet.merge_cells(f'U{idx}:W{idx}')
-        # sheet.column_dimensions['U'].width = 3.83 * 3
 
         sheet.merge_cells(f'X{idx}:Y{idx}')
-        # sheet.column_dimensions['X'].width = 3.83 * 3
 
         for row in sheet[f'B{idx}:Y{idx}']:
             for cell in row:
@@ -249,10 +255,12 @@ def main(path_input: str, path_save: str) -> None:
 
 
 if __name__ == "__main__":
-    print("Запуск скрипта...")
-    if len(sys.argv) > 2:
-        file_path_input = sys.argv[1]
-        file_path_save = sys.argv[2]
-        main(file_path_input, file_path_save)
-    else:
-        print("Ошибка. Не переданы пути для работы скрипта.")
+    # print("Запуск скрипта...")
+    # if len(sys.argv) > 2:
+    #     file_path_input = sys.argv[1]
+    #     file_path_save = sys.argv[2]
+    #     main(file_path_input, file_path_save)
+    # else:
+    #     print("Ошибка. Не переданы пути для работы скрипта.")
+
+    main("input_2.xlsx", "reports/example_advance_report.xlsx")

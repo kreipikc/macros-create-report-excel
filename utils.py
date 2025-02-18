@@ -1,17 +1,16 @@
 import os
-from datetime import timedelta, date
+from docx import Document
 from typing import Optional, List
 from num2words import num2words
 from pydantic import ValidationError
-from config import START_DATE
 from schemas import ChecksDefault, TypeCheck, TypeDocument
 
 
-def validate_check(checks: List[ChecksDefault]) -> None:
-    """Validate a list of checks to ensure all required fields are filled based on the check type.
+def validate_check(check: ChecksDefault) -> None:
+    """Validate check to ensure all required fields are filled based on the check type.
 
     Args:
-        checks (List[ChecksDefault]): A list of ChecksDefault objects to be validated.
+        check (ChecksDefault): A list of ChecksDefault objects to be validated.
 
     Returns:
         None
@@ -19,13 +18,49 @@ def validate_check(checks: List[ChecksDefault]) -> None:
     Raises:
         Exception: If a required field is missing for a specific check type.
     """
-    for check in checks:
-        if check.type == TypeCheck.daily_allowance:
-            if check.comment is None:
-                raise Exception(f"There can't be a None comment for a '{check.type.value}' one.")
-        else:
-            if check.id_check is None or check.date is None:
-                raise Exception(f"For the '{check.type.value}' type, the details must be filled in")
+    if not check.sum_check or not check.id_check or not check.date:
+        raise Exception("Не заполнены реквизиты чека!")
+
+    # Проверка определенного типа
+    if check.type == TypeCheck.representative_offices_event:
+        if not check.counterparty:
+            raise Exception(f"Не заполнено поле 'Контрагент' (Чек ID: {check.id_check})")
+
+        if not check.counterparty_participant:
+            raise Exception(f"Не заполнено поле 'Участник контрагента' (Чек ID: {check.id_check})")
+
+        if not check.counterparty_post:
+            raise Exception(f"Не заполнено поле 'Контрагент должность' (Чек ID: {check.id_check})")
+
+        if not check.meeting_place:
+            raise Exception(f"Не заполнено поле 'Место встречи' (Чек ID: {check.id_check})")
+    elif check.type == TypeCheck.representative_offices_present:
+        if not check.topic:
+            raise Exception(f"Не заполнено поле 'Тема / Мероприятие' (Чек ID: {check.id_check})")
+
+        if not check.counterparty:
+            raise Exception(f"Не заполнено поле 'Контрагент' (Чек ID: {check.id_check})")
+
+        if not check.counterparty_participant:
+            raise Exception(f"Не заполнено поле 'Участник контрагента' (Чек ID: {check.id_check})")
+
+        if not check.name_present:
+            raise Exception(f"Не заполнено поле 'Наименование подарка' (Чек ID: {check.id_check})")
+    elif check.type == TypeCheck.round_table_discussion_Club:
+        if not check.medication:
+            raise Exception(f"Не заполнено поле 'Препарат' (Чек ID: {check.id_check})")
+
+        if not check.counterparty_participant:
+            raise Exception(f"Не заполнено поле 'Участник контрагента' (Чек ID: {check.id_check})")
+
+        if not check.counterparty_post:
+            raise Exception(f"Не заполнено поле 'Контрагент должность' (Чек ID: {check.id_check})")
+
+        if not check.topic:
+            raise Exception(f"Не заполнено поле 'Тема / Мероприятие' (Чек ID: {check.id_check})")
+
+        if not check.meeting_place:
+            raise Exception(f"Не заполнено поле 'Место встречи' (Чек ID: {check.id_check})")
 
 
 def create_check(check: tuple) -> Optional[ChecksDefault]:
@@ -67,16 +102,79 @@ def create_check(check: tuple) -> Optional[ChecksDefault]:
         return None
 
 
-def convert_excel_date_to_normal(excel_date: int) -> date:
-    """Convert an Excel date to a normal date.
+def replace_text_in_paragraph(paragraph, key, value) -> None:
+    """Replace a specific key with a value in a paragraph.
 
     Args:
-        excel_date (int): The date in Excel format.
+        paragraph (Paragraph): The paragraph object where the replacement will occur.
+        key (str): The placeholder text to be replaced.
+        value (str): The text to replace the placeholder.
 
     Returns:
-        date: The converted date in normal format.
+        None
     """
-    return START_DATE + timedelta(days=excel_date)
+    if key in paragraph.text:
+        full_text = ''.join(run.text for run in paragraph.runs)
+
+        if key in full_text:
+            full_text = full_text.replace(key, value)
+
+            for run in paragraph.runs:
+                run.text = ""
+
+            paragraph.runs[0].text = full_text
+
+
+def replace_text_in_table(table, key, value) -> None:
+    """Replace a specific key with a value in all cells of a table.
+
+    Args:
+        table (Table): The table object where the replacement will occur.
+        key (str): The placeholder text to be replaced.
+        value (str): The text to replace the placeholder.
+
+    Returns:
+        None
+    """
+    for row in table.rows:
+        for cell in row.cells:
+            for paragraph in cell.paragraphs:
+                replace_text_in_paragraph(paragraph, key, value)
+
+
+def create_representative_word(replacements: dict, file_template: str, output_path: str) -> None:
+    """Generate a Word document by replacing placeholders in a template.
+
+    Args:
+        replacements (dict): A dictionary of placeholders and their corresponding values.
+        file_template (str): The name of the template file located in the 'templates' directory.
+        output_path (str): The path where the generated document will be saved.
+
+    Returns:
+        None
+    """
+    doc = Document(f"templates/{file_template}")
+
+    for key, value in replacements.items():
+        for paragraph in doc.paragraphs:
+            replace_text_in_paragraph(paragraph, key, value)
+
+        for table in doc.tables:
+            replace_text_in_table(table, key, value)
+
+    doc.save(f"{output_path}")
+
+
+# def convert_excel_date_to_normal(excel_date: int) -> date:
+#     """Convert an Excel date to a normal date.
+#
+#     Args:
+#         excel_date (int): The date in Excel format.
+#
+#     Returns:
+#         date: The converted date in normal format.
+#     """
+#     return START_DATE + timedelta(days=excel_date)
 
 
 def sum_money_all_checks(checks: List[ChecksDefault]) -> float:
@@ -94,7 +192,36 @@ def sum_money_all_checks(checks: List[ChecksDefault]) -> float:
     return sum_checks
 
 
-def convert_to_words(rubles: int, kopecks: int) -> str:
+def convert_num_to_word(num: int) -> str:
+    """Convert a number to its word representation in Russian.
+
+    Args:
+        num (int): The number to convert.
+
+    Returns:
+        A str, the number in words, capitalized.
+    """
+    num_word = num2words(num, lang='ru')
+    return num_word.capitalize()
+
+
+def create_kopecks_str(num: float) -> str:
+    """Extract the kopecks part from a monetary amount.
+
+    Args:
+        num (float): The monetary amount in rubles and kopecks.
+
+    Returns:
+        A str, the kopecks part as a string (e.g., "00" or "50").
+    """
+    kopecks = (num - int(num)) * 100
+    if kopecks == 0:
+        return "00"
+    else:
+        return f"{kopecks:.0f}"
+
+
+def create_text_price(rubles: int, kopecks: int) -> str:
     """Convert a monetary amount to words in Russian.
 
     Args:
@@ -104,10 +231,10 @@ def convert_to_words(rubles: int, kopecks: int) -> str:
     Returns:
         str: The monetary amount in words.
     """
-    rubles_in_words = num2words(rubles, lang='ru')
-    # kopecks_in_words = num2words(kopecks, lang='ru')
+    rubles_in_words = convert_num_to_word(rubles)
+    # kopecks_in_words = convert_num_to_word(kopecks)
 
-    result = f"{rubles_in_words.capitalize()} рублей {kopecks} копеек ({rubles} руб. {kopecks} коп.)"
+    result = f"{rubles_in_words} рублей {kopecks} копеек ({rubles} руб. {kopecks} коп.)"
     return result
 
 

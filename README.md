@@ -1,7 +1,7 @@
 # RU
 ## Для создания отчетов
 Вам нужен zip-файл `dist/createReportsScript.zip` и файл `input.xlsm`.
-Скачиваете папку и файл.
+Скачиваете архив и файл.
 
 Далее заходите в `input.xlsm` и открыаете макрос `DoDocument`:
 
@@ -32,7 +32,7 @@
 # ENG
 ## To create reports
 You need the archive `dist/createReportsScript.zip` and the file `input.xlsm'.
-Download the folder and file.
+Download the archive and file.
 
 Next, go to `input.xlsm` and open the macro `DoDocument`:
 

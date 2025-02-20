@@ -1,5 +1,7 @@
 import math
+import os
 import sys
+import win32com.client
 from datetime import timedelta
 from typing import Optional, List
 from openpyxl import load_workbook
@@ -103,7 +105,7 @@ def create_report(checks: List[ChecksDefault], info_data: AdditionalInfo, path_s
     Raises:
         Exception: If there is an error while creating the report.
     """
-    workbook = load_workbook(get_absolute_path("templates/template_advance_report.xlsx"))
+    workbook = load_workbook(get_absolute_path("templates\\template_advance_report.xlsx"))
     sheet = workbook.active
     sys.stdout.reconfigure(encoding='utf-8')
 
@@ -240,7 +242,18 @@ def create_report(checks: List[ChecksDefault], info_data: AdditionalInfo, path_s
     sheet[f'N{new_block_data_row + 2}'] = info_data.employee
     sheet[f'N{new_block_data_row + 6}'] = info_data.employee
 
-    workbook.save(f"{path_save}/Авансовый отчет {info_data.date_report.strftime('%d-%m-%Y')}.xlsx")
+    workbook.save(f"{path_save}\\Авансовый отчет {info_data.date_report.strftime('%d-%m-%Y')}.xlsx")
+
+    # EXCEL -> PDF
+    excel = win32com.client.Dispatch("Excel.Application")
+
+    workbook = excel.Workbooks.Open(get_absolute_path(f"{path_save}\\Авансовый отчет {info_data.date_report.strftime('%d-%m-%Y')}.xlsx"))
+
+    worksheet = workbook.ActiveSheet
+    worksheet.ExportAsFixedFormat(0, get_absolute_path(f"{path_save}\\Авансовый отчет {info_data.date_report.strftime('%d-%m-%Y')}.pdf"))
+
+    workbook.Close(False)
+    excel.Quit()
 
 
 def create_additional_reports(checks: List[ChecksDefault], info_data: AdditionalInfo, path_save: str) -> None:
@@ -259,15 +272,15 @@ def create_additional_reports(checks: List[ChecksDefault], info_data: Additional
             money = math.ceil(check.sum_check / 1000) * 1000
             replacements = {
                 "{{counterparty}}": check.counterparty,
-                "{{date_compilation}}": str(format_date((check.date - timedelta(days=7)), format='d MMMM yyyy г.', locale=LOCATE_DATE)),
-                "{{date}}": str(format_date(check.date, format='d MMMM yyyy г.', locale=LOCATE_DATE)),
+                "{{date_compilation}}": str(format_date((check.date - timedelta(days=7)), format='dd MMMM yyyy г.', locale=LOCATE_DATE)),
+                "{{date}}": str(format_date(check.date, format='dd MMMM yyyy г.', locale=LOCATE_DATE)),
                 "{{meeting_place}}": check.meeting_place,
                 "{{post}}": info_data.post,
                 "{{employee}}": info_data.employee,
                 "{{counterparty_participant}}": check.counterparty_participant,
                 "{{counterparty_post}}": check.counterparty_post,
                 "{{budget}}": f"{money:.2f} рублей ({convert_num_to_word(int(money))} рублей {create_kopecks_str(check.sum_check)} копеек)",
-                "{{day}}": str(format_date((check.date - timedelta(days=7)), format='d', locale=LOCATE_DATE)),
+                "{{day}}": str(format_date((check.date - timedelta(days=7)), format='dd', locale=LOCATE_DATE)),
                 "{{month}}": str(format_date((check.date - timedelta(days=7)), format='MMMM', locale=LOCATE_DATE)),
                 "{{year}}": str(format_date((check.date - timedelta(days=7)), format='yyyy', locale=LOCATE_DATE)),
                 "{{price_num}}": f"{check.sum_check:.2f}",
@@ -276,13 +289,15 @@ def create_additional_reports(checks: List[ChecksDefault], info_data: Additional
                 "{{date_default}}": str(check.date.strftime('%d.%m.%Y')),
                 "{{id}}": str(check.id_check),
             }
-            create_representative_word(replacements=replacements, file_template="template_representative.docx", output_path=f"{path_save}/Представительские_{check.id_check}.docx")
+            print(f"Создание отчета 'Представительские_{check.id_check}'...")
+            create_representative_word(replacements=replacements, file_template="template_representative.docx", output_path=f"{path_save}\\Представительские_{check.id_check}")
+            print(f"Отчет 'Представительские_{check.id_check}' создан!")
         elif check.type == TypeCheck.representative_offices_present:
             money = math.ceil(check.sum_check / 1000) * 1000
             replacements = {
                 "{{topic}}": check.topic,
                 "{{date_compilation}}": str(format_date((check.date - timedelta(days=7)), format='dd MMMM yyyy г.', locale=LOCATE_DATE)),
-                "{{date}}": str(format_date(check.date, format='«d» MMMM yyyy г.', locale=LOCATE_DATE)),
+                "{{date}}": str(format_date(check.date, format='«dd» MMMM yyyy г.', locale=LOCATE_DATE)),
                 "{{post}}": info_data.post,
                 "{{employee}}": info_data.employee,
                 "{{counterparty}}": check.counterparty,
@@ -295,13 +310,15 @@ def create_additional_reports(checks: List[ChecksDefault], info_data: Additional
                 "{{count_present}}": str(len([word.strip() for word in check.name_present.split(", ")])),
                 "{{price}}": str(check.sum_check)
             }
-            create_representative_word(replacements=replacements, file_template="template_presents.docx", output_path=f"{path_save}/Представительские Подарки_{check.id_check}.docx")
+            print(f"Создание отчета 'Представительские Подарки_{check.id_check}'...")
+            create_representative_word(replacements=replacements, file_template="template_presents.docx", output_path=f"{path_save}\\Представительские Подарки_{check.id_check}")
+            print(f"Отчет 'Представительские Подарки_{check.id_check}' создан!")
         elif check.type == TypeCheck.round_table_discussion_Club:
             money = math.ceil(check.sum_check / 1000) * 1000
             replacements = {
                 "{{medication}}": check.medication,
                 "{{date_compilation}}": str(format_date((check.date - timedelta(days=7)), format='dd MMMM yyyy г.', locale=LOCATE_DATE)),
-                "{{date}}": str(format_date(check.date, format='d MMMM yyyy г.', locale=LOCATE_DATE)),
+                "{{date}}": str(format_date(check.date, format='dd MMMM yyyy г.', locale=LOCATE_DATE)),
                 "{{meeting_place}}": check.meeting_place,
                 "{{post}}": info_data.post,
                 "{{employee}}": info_data.employee,
@@ -310,7 +327,9 @@ def create_additional_reports(checks: List[ChecksDefault], info_data: Additional
                 "{{counterparty_post}}": check.counterparty_post,
                 "{{budget}}": f"{money:.2f} рублей ({convert_num_to_word(int(money))} рублей {create_kopecks_str(check.sum_check)} копеек)",
             }
-            create_representative_word(replacements=replacements, file_template="template_round_table.docx", output_path=f"{path_save}/БЗ Круглый стол_{check.id_check}.docx")
+            print(f"Создание отчета 'БЗ Круглый стол_{check.id_check}'...")
+            create_representative_word(replacements=replacements, file_template="template_round_table.docx", output_path=f"{path_save}\\БЗ Круглый стол_{check.id_check}")
+            print(f"Отчет 'БЗ Круглый стол_{check.id_check}' создан!")
 
 
 def main(path_input_file: str, path_save: str) -> None:
@@ -335,12 +354,14 @@ def main(path_input_file: str, path_save: str) -> None:
 
 
 if __name__ == "__main__":
-    # print("Запуск скрипта...")
-    # if len(sys.argv) > 2:
-    #     file_path_input = sys.argv[1]
-    #     file_path_save = sys.argv[2]
-    #     main(file_path_input, file_path_save)
-    # else:
-    #     print("Ошибка. Не переданы пути для работы скрипта.")
+    print("Запуск скрипта...")
+    if len(sys.argv) > 2:
+        file_path_input = sys.argv[1]
+        file_path_save = sys.argv[2]
 
-    main("input.xlsx", "reports")
+        if not os.path.exists(file_path_save):
+            os.makedirs(file_path_save)
+
+        main(file_path_input, file_path_save)
+    else:
+        print("Ошибка. Не переданы пути для работы скрипта.")

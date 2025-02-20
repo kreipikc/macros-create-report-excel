@@ -1,5 +1,5 @@
 import os
-from docx import Document
+import win32com.client
 from typing import Optional, List
 from num2words import num2words
 from pydantic import ValidationError
@@ -102,79 +102,69 @@ def create_check(check: tuple) -> Optional[ChecksDefault]:
         return None
 
 
-def replace_text_in_paragraph(paragraph, key, value) -> None:
-    """Replace a specific key with a value in a paragraph.
-
-    Args:
-        paragraph (Paragraph): The paragraph object where the replacement will occur.
-        key (str): The placeholder text to be replaced.
-        value (str): The text to replace the placeholder.
-
-    Returns:
-        None
-    """
-    if key in paragraph.text:
-        full_text = ''.join(run.text for run in paragraph.runs)
-
-        if key in full_text:
-            full_text = full_text.replace(key, value)
-
-            for run in paragraph.runs:
-                run.text = ""
-
-            paragraph.runs[0].text = full_text
-
-
-def replace_text_in_table(table, key, value) -> None:
-    """Replace a specific key with a value in all cells of a table.
-
-    Args:
-        table (Table): The table object where the replacement will occur.
-        key (str): The placeholder text to be replaced.
-        value (str): The text to replace the placeholder.
-
-    Returns:
-        None
-    """
-    for row in table.rows:
-        for cell in row.cells:
-            for paragraph in cell.paragraphs:
-                replace_text_in_paragraph(paragraph, key, value)
-
-
 def create_representative_word(replacements: dict, file_template: str, output_path: str) -> None:
-    """Generate a Word document by replacing placeholders in a template.
+    """Create a Word document by replacing placeholders with actual values and save it as a PDF.
 
     Args:
-        replacements (dict): A dictionary of placeholders and their corresponding values.
-        file_template (str): The name of the template file located in the 'templates' directory.
-        output_path (str): The path where the generated document will be saved.
+        replacements (dict): A dictionary where keys are placeholders in the template and values are the actual text to replace them.
+        file_template (str): The name of the Word template file (without path) located in the "templates" directory.
+        output_path (str): The output path (without extension) where the resulting Word document and PDF will be saved.
 
     Returns:
         None
+
+    Raises:
+        Exception: If an error occurs during the process, such as issues with file paths or Word application operations.
     """
-    doc = Document(f"templates/{file_template}")
+    try:
+        # Создаем объект Word-приложения
+        word_app = win32com.client.Dispatch("Word.Application")
+        word_app.Visible = False  # Открываем приложение в фоновом режиме
 
-    for key, value in replacements.items():
-        for paragraph in doc.paragraphs:
-            replace_text_in_paragraph(paragraph, key, value)
+        # Открываем документ
+        doc = word_app.Documents.Open(get_absolute_path(f"templates\\{file_template}"))
 
-        for table in doc.tables:
-            replace_text_in_table(table, key, value)
+        # Используем встроенную функцию замены текста
+        for old_text, new_text in replacements.items():
+            find_obj = word_app.Selection.Find
+            find_obj.ClearFormatting()
+            find_obj.Replacement.ClearFormatting()
+            find_obj.Text = old_text
+            find_obj.Replacement.Text = new_text
+            find_obj.Execute(
+                FindText=old_text,
+                MatchCase=False,
+                MatchWholeWord=False,
+                MatchWildcards=False,
+                MatchSoundsLike=False,
+                MatchAllWordForms=False,
+                Forward=True,
+                Wrap=1,
+                Format=False,
+                ReplaceWith=new_text,
+                Replace=2  # wdReplaceAll
+            )
 
-    doc.save(f"{output_path}")
+        # Сохраняем изменения в новый файл
+        doc.SaveAs2(get_absolute_path(f"{output_path}.docx"))
 
+        doc.ExportAsFixedFormat(
+            OutputFileName=get_absolute_path(f"{output_path}.pdf"),
+            ExportFormat=17,  # 17 соответствует wdExportFormatPDF
+            OpenAfterExport=False,
+            OptimizeFor=0,  # 0 соответствует wdExportOptimizeForPrint
+            CreateBookmarks=0  # 0 соответствует wdExportCreateNoBookmarks
+        )
 
-# def convert_excel_date_to_normal(excel_date: int) -> date:
-#     """Convert an Excel date to a normal date.
-#
-#     Args:
-#         excel_date (int): The date in Excel format.
-#
-#     Returns:
-#         date: The converted date in normal format.
-#     """
-#     return START_DATE + timedelta(days=excel_date)
+    except Exception as e:
+        print(f"Ошибка: {e}")
+    finally:
+        try:
+            # Закрываем документ и приложение
+            doc.Close(False)
+            word_app.Quit()
+        except Exception as e:
+            print(f"Ошибка при закрытии документа: {e}")
 
 
 def sum_money_all_checks(checks: List[ChecksDefault]) -> float:

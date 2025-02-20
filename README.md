@@ -1,47 +1,39 @@
-# ENG
-## Information
-- The `templates` folder contains a template for creating an advance report. 
-- The `input.xlsm` file contains a suitable template for filling out the report, as well as a macro that needs to be configured.
-- The `reports` folder contains an example of an advance report received upon completion of the script.
-
-## How to start
-### First step
-Download python and download the necessary libraries from `requirements.txt`.
-
-You need to go to the right directory and download all libraries:
-```commandline
-cd example/path/to/script_folder
-pip intall -r requirements.txt
-```
-
-### Second step
-Configure it `config.py` if necessary (is to you use templates, you don't need to).
-The macro is already in the `input.xlsm` file, and its code can be viewed in `macros_code.vb.txt`. To work correctly, **you need to configure it in Excel**, namely specify the paths:
-- `pythonExe`: path to the python interpreter;
-- `PythonScript`: the path to the script `main.py`;
-- `savePath`: the path to save the final report.
-
-After setting up the macro, you can fill in the file and click on "Generate"
-
 # RU
-## Информация
-- Папка `templates` содержит шаблон для создания авансового отчета. 
-- Файл `input.xlsm` содержит подходящий шаблон для заполнения отчета, а также макрос, который необходимо настроить.
-- Папка `reports` содержит пример авансового отчета, полученный по завершению работы скрипта.
+## Для создания отчетов
+Вам нужна папка вся `dist/createReportsScript` и файл `input.xlsm`.
+Скачиваете папку и файл.
 
-## Как начать
-### Первый шаг
-Скачайте python и загрузите необходимые библиотеки с сайта `requirements.txt`.
+Далее заходите в `input.xlsm` и указываете полный путь до `createReportsScript.exe`, сохраняете и готово.
 
-Вам нужно перейти в нужный каталог и загрузить все библиотеки:
-```commandline
-cd example/path/to/script_folder
-pip intall -r requirements.txt
-```
+Теперь при заполнении данными файла `input.xlsm` и нажатии на кнопку **"Сформировать документы"** у вас создаться в той же директории папка `reports` со всеми отчетами в форматах:
 
-### Второй шаг
-Настройте его `config.py` при необходимости (если вы используете шаблоны, вам это не нужно).
-Макрос уже находится в файле `input.xlsm`, а его код можно просмотреть в `macros_code.vb.txt`. Для корректной работы **вам необходимо настроить его в Excel**, а именно указать пути:
-- `pythonExe`: путь к интерпретатору python;
-- `PythonScript`: путь к скрипту `main.py`;
-- `SavePath`: путь для сохранения окончательного отчета.
+- Word (.docx)
+- Excel (.xlsx)
+- PDF (.pdf)
+
+### Информация
+В папке `dist` находиться папка с готовым скриптом в виде исполняемого файла для Windows (.exe).
+
+В папке `reports` лежат примеры созданных отчетов с помощью шаблонов и исходного файла.
+
+В папке `templates` лежать шаблоны для создания отчетов.
+
+# ENG
+## To create reports
+You need the entire folder `dist/createReportsScript` and the file `input.xlsm`.
+Download the folder and file.
+
+Next, go to the `input.xlsm` and specify the full path to `createReportsScript.exe `, save it and you're done.
+
+Now, when filling in the input.xlsm file with data and clicking on the button **"Сформировать документы"** you will have a folder `reports` in the same directory with all reports in the following formats:
+
+- Word (.docx)
+- Excel (.xlsx)
+- PDF (.pdf)
+
+### Information
+The `dist` folder contains a folder with a ready-made script in the form of an executable file for Windows (.exe).
+
+The `reports` folder contains examples of created reports using templates and a source file.
+
+The `templates` folder contains templates for creating reports.

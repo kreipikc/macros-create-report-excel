@@ -5,11 +5,11 @@ Sub DoDocument()
     Dim directoryPath As String
     Dim command As String
 
-    exePath = "C:\Users\User\PycharmProjects\macrosExcelProject\dist\main\main.exe"
+    exePath = ThisWorkbook.Path & "\createReportsScript\createReportsScript.exe"
 
-    filePath = ThisWorkbook.FullName
+    filePath = """" & ThisWorkbook.FullName & """"
 
-    directoryPath = ThisWorkbook.Path & "\reports"
+    directoryPath = """" & ThisWorkbook.Path & "\reports" & """"
 
     command = "cmd.exe /K " & exePath & " " & filePath & " " & directoryPath
 

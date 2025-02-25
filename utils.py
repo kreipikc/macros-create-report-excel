@@ -145,8 +145,8 @@ def create_representative_word(replacements: dict, file_template: str, output_pa
                 Replace=2  # wdReplaceAll
             )
 
-        # Сохраняем изменения в новый файл
-        doc.SaveAs2(get_absolute_path(f"{output_path}.docx"))
+        # Сохраняем изменения в новый файл docx
+        # doc.SaveAs2(get_absolute_path(f"{output_path}.docx"))
 
         doc.ExportAsFixedFormat(
             OutputFileName=get_absolute_path(f"{output_path}.pdf"),

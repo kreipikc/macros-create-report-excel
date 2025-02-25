@@ -240,7 +240,6 @@ def create_report(checks: List[ChecksDefault], info_data: AdditionalInfo, path_s
             cell.border = Border(bottom=Side(border_style='thin', color='000000'))
 
     sheet[f'N{new_block_data_row + 2}'] = info_data.employee
-    sheet[f'N{new_block_data_row + 6}'] = info_data.employee
 
     workbook.save(f"{path_save}\\Авансовый отчет {info_data.date_report.strftime('%d-%m-%Y')}.xlsx")
 

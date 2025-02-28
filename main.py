@@ -353,16 +353,14 @@ def main(path_input_file: str, path_save: str) -> None:
 
 
 if __name__ == "__main__":
-    # print("Запуск скрипта...")
-    # if len(sys.argv) > 2:
-    #     file_path_input = sys.argv[1]
-    #     file_path_save = sys.argv[2]
-    #
-    #     if not os.path.exists(file_path_save):
-    #         os.makedirs(file_path_save)
-    #
-    #     main(file_path_input, file_path_save)
-    # else:
-    #     print("Ошибка. Не переданы пути для работы скрипта.")
+    print("Запуск скрипта...")
+    if len(sys.argv) > 2:
+        file_path_input = sys.argv[1]
+        file_path_save = sys.argv[2]
 
-    main("input.xlsm", "reports")
+        if not os.path.exists(file_path_save):
+            os.makedirs(file_path_save)
+
+        main(file_path_input, file_path_save)
+    else:
+        print("Ошибка. Не переданы пути для работы скрипта.")
